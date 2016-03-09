@@ -1,1 +1,56 @@
 nothing, go away
+
+# PostgreSQL 9.4.5
+result 38~40 second
+
+
+# MySQL 5.7.10
+result 38~40 second
+
+
+# SSDB 1.9.2
+result 19~20 second
+
+# cassandra 3.0.2
+result 27 second
+
+
+
+# SQL database 
+
+Pros.
+======
+
+    Rich query and relational stucture.
+
+    everyone know it.
+
+Cons.
+=====
+
+    Support Master (Master or Slave), need to shard db to scale write.
+
+# SSDB
+
+Pros.
+======
+    Fastest 
+
+Cons.
+=====
+    query language support key query. 
+    same with sql db, need to scale write.
+
+# Cassandra
+
+Pros.
+======
+    Easy setup event on cluster
+    scale read && write
+    support TTLi(time to live), good to log event.
+
+Cons.
+=====
+    Query language have to adapt the data model
+    Query lanuage without OR, NOT.
+

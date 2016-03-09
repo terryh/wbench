@@ -5,11 +5,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gocql/gocql"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 )
 
 var (
-	db       *gocql.ClusterConfig
+	db       *sqlx.DB
 	testHash = "testhash"
 )
 
@@ -19,20 +20,18 @@ type Worker interface {
 
 type Writer struct {
 	Count int
-	conn  *gocql.ClusterConfig
+	conn  *sqlx.DB
 }
 
-func NewWriter(conn *gocql.ClusterConfig, count int) *Writer {
+func NewWriter(conn *sqlx.DB, count int) *Writer {
 	return &Writer{Count: count, conn: conn}
 }
 
 func (w *Writer) Run() {
 	var start = time.Now()
-	session, _ := w.conn.CreateSession()
-	defer session.Close()
-
 	for i := 0; i < w.Count; i++ {
-		if err := session.Query(`INSERT INTO test (id, resptime) VALUES (?,?)`, i, i).Exec(); err != nil {
+		_, err := db.Exec(`INSERT INTO test (resptime) VALUES ( ? )`, i)
+		if err != nil {
 			log.Println(err)
 		}
 	}
@@ -42,11 +41,8 @@ func (w *Writer) Run() {
 
 func main() {
 	log.Println("Main")
-	db := gocql.NewCluster("127.0.0.1", "127.0.0.2", "127.0.0.3")
-	db.Keyspace = "test"
-	db.ProtoVersion = 4
-	db.Consistency = gocql.Quorum
-
+	//db, _ = sqlx.Open("postgres", "dbname=terry host=localhost user=terry sslmode=disable")
+	db, _ = sqlx.Open("mysql", "root:@/testdb")
 	log.Println(db)
 
 	now := time.Now()
@@ -59,7 +55,7 @@ func main() {
 	var wg sync.WaitGroup
 	wg.Add(numberOfWorker)
 	for i := 0; i < numberOfWorker; i++ {
-		go func(i int, conn *gocql.ClusterConfig, wg *sync.WaitGroup) {
+		go func(i int, conn *sqlx.DB, wg *sync.WaitGroup) {
 			w := Writer{100000, conn}
 			w.Run()
 			log.Println("Writer", i, "finished")
